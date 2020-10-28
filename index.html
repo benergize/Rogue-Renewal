@@ -32,13 +32,8 @@
 
 		<canvas id = 'canvas' width = '640' height = '480' tabindex = "1"></canvas>
 		
-		<script src = 'engine/GameEngine.js'></script>
-		<script src = 'engine/objects/Background.js'></script>
-		<script src = 'engine/objects/GameObject.js'></script>
-		<script src = 'engine/objects/Sprite.js'></script>
-		<script src = 'engine/objects/Room.js'></script>
-		<script src = 'engine/objects/Tile.js'></script>
-		<script src = 'engine/objects/Sound.js'></script>
+		<!-- Serve the latest version of the engine via my website via github -->
+		<script src = 'https://benergize.com/indev/bjge/'></script>
 
 		<script>game = new GameEngine("#canvas");</script>
 
@@ -62,6 +57,10 @@
 			
 			game.setCurrentRoom("room1");
 			game.begin();
+
+			pcg_cave();
+
+			obj_player.x += 4;
 			
 		</script> 
 	
