@@ -23,7 +23,11 @@ function pcg_cave() {
 	}
 	lines.forEach(line=>{
 		let x = line[0];
-		let y = line[1];let f= 0;
+		let y = line[1];
+		let f= 0;
+
+		if(Math.random() > .7) { room1.roomObjects.push(new Obj_Pickup(x,y)); }
+
 		while((x != line[2] || y != line[3]) && f < 50) {
 			x += 32 * (x==line[2] ? 0 : (line[2] > line[0] ? 1 : -1));
 			y += 48 * (y==line[3] ? 0 : (line[3] > line[1] ? 1 : -1));
@@ -37,7 +41,7 @@ function pcg_cave() {
 	for(let x = 0; x < 1280; x += 32) {
 		for(let y = 0; y < 720; y+=48){ 
 			if(points.indexOf(x+","+y) == -1) {
-				room1.roomObjects.push(new Obj_wall(x,y))
+				room1.roomObjects.push(new Obj_Wall(x,y))
 			}
 		}
 	}

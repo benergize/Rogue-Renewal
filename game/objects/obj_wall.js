@@ -1,6 +1,6 @@
-function Obj_wall(x,y) {
+function Obj_Wall(x,y) {
 
-	var wall = new GameObject("obj_wall",x,y,new Sprite('c',"game/sprites/tiles.png",254,32,32,48,32,48));
+	var wall = new GameObject("obj_wall",x,y,spr_wall_cave);
 
 	wall.solid = true;
 	//wall.collisionBox = [0,20,32,20];

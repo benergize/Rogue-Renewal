@@ -70,14 +70,15 @@ obj_player.onkeydown = function(ev) {
 	if(ev.key == "w" && cr.checkEmpty( this.x + cb[0],-12 + this.y + cb[1], true, cb[2], cb[3])) { this.y -= 12; } 
 	if(ev.key == "s" && cr.checkEmpty( this.x + cb[0], 12 + this.y + cb[1], true, cb[2], cb[3])) { this.y += 12; }  
 
-	if(ev.key=="e"/*prevPos !== this.x + ',' + this.y*/) { 
-		sou_footstep[Math.floor(Math.random()*sou_footstep.length)].play(.1); 
+	
+	if(prevPos !== this.x + ',' + this.y) { sou_footstep[Math.floor(Math.random()*sou_footstep.length)].play(.1);  }
 
-		//this.setDepth(-1*this.y);
+	if(ev.key == "e") { 
+		
 
 		let cols = cr.getObjectsAt(this.x,this.y,false,32,48);
 		cols.forEach(obj=>{
-			if(obj.name == "obj_pickup") { obj.destroy(); }
+			if(obj.name == "obj_pickup" && !obj.opened) { obj.open(); }
 			if(obj.name == "obj_door") { obj.open(); }
 		}); 
 	}
