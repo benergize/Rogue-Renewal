@@ -83,5 +83,7 @@ obj_player.onkeydown = function(ev) {
 		}); 
 	}
 
+	room1.getObjects("obj_enemy").forEach(e=>{e.ai();})
+
 
 } 

@@ -4,7 +4,7 @@ var obj_roomEditor = new GameObject("obj_roomEditor");
 obj_roomEditor.onmousedown = function(ev) {
 
 	this.mousePressed = ev.button; 
-	obj_roomEditor.mousemove(ev);
+	obj_roomEditor.onmousemove(ev);
 	console.log(ev);
 }
 
@@ -19,8 +19,10 @@ obj_roomEditor.onmousemove = function(ev) {
 		 
 		let croom = game.getCurrentRoom();
 
-		let sx = Math.floor((ev.clientX+croom.view.x) / 32) * 32 - game.engine.canvas.offsetLeft;
-		let sy = Math.floor((ev.clientY+croom.view.y) / 48) * 48 - game.engine.canvas.offsetTop;
+		let sx = Math.round(Math.round((ev.clientX+croom.view.x- game.engine.canvas.offsetLeft) / 32) * 32);
+		let sy = Math.round(Math.round((ev.clientY+croom.view.y - game.engine.canvas.offsetTop) / 48) * 48);
+
+		console.log(croom.mapNodes[sx/32 + "," + sy/48]);
 
 		if(this.mousePressed == 0) {
 			let ssx = document.querySelector("#tiles");
@@ -37,9 +39,9 @@ obj_roomEditor.onmousemove = function(ev) {
 		}
 		else if(this.mousePressed == 2) {
 
-			let sx = Math.floor((ev.clientX+croom.view.x) / 32) * 32 - game.engine.canvas.offsetLeft;
-			let sy = Math.floor((ev.clientY+croom.view.y) / 48) * 48 - game.engine.canvas.offsetTop;
-			croom.getTilesAt(sx,sy)[0].destroy();
+			let sx = Math.round((ev.clientX+croom.view.x) / 32) * 32 - game.engine.canvas.offsetLeft;
+			let sy = Math.round((ev.clientY+croom.view.y) / 48) * 48 - game.engine.canvas.offsetTop;
+			try{croom.getTilesAt(sx,sy)[0].destroy();} catch(e){}
 		}
 	}
 }

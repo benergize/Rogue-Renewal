@@ -5,9 +5,9 @@ function pcg_cave() {
 	for(let f = 0; f < 25; f++) {
 		
 		let x1 = Math.floor(Math.floor(Math.random()*1280)/32)*32;
-		let x2 =  Math.floor(Math.floor(Math.random()*1280)/32)*32;
-		let y1 =  Math.floor(Math.floor(Math.random()*720)/48)*48;
-		let y2 =  y1;
+		let x2 = Math.floor(Math.floor(Math.random()*1280)/32)*32;
+		let y1 = Math.floor(Math.floor(Math.random()*720)/48)*48;
+		let y2 = y1;
 	
 		lines.push([x1,y1,x2,y2]);
 	}
@@ -16,24 +16,27 @@ function pcg_cave() {
 		
 		let x1 = Math.floor(Math.floor(Math.random()*1280)/32)*32;
 		let x2 = x1;
-		let y1 =  Math.floor(Math.floor(Math.random()*720)/48)*48;
-		let y2 =  Math.floor(Math.floor(Math.random()*720)/48)*48;
+		let y1 = Math.floor(Math.floor(Math.random()*720)/48)*48;
+		let y2 = Math.floor(Math.floor(Math.random()*720)/48)*48;
 	
 		lines.push([x1,y1,x2,y2]);
 	}
 	lines.forEach(line=>{
 		let x = line[0];
 		let y = line[1];
-		let f= 0;
+		let f = 0;
 
 		if(Math.random() > .7) { room1.roomObjects.push(new Obj_Pickup(x,y)); }
+		else if(Math.random() > .9) { room1.roomObjects.push(new Obj_Enemy(Math.round(x/32)*32,Math.round(y/48)*48)); }
 
 		while((x != line[2] || y != line[3]) && f < 50) {
-			x += 32 * (x==line[2] ? 0 : (line[2] > line[0] ? 1 : -1));
-			y += 48 * (y==line[3] ? 0 : (line[3] > line[1] ? 1 : -1));
+
 			points.push(x+","+y);
 			points.push(x+","+(y+1));
 			points.push((x+1)+","+y);
+
+			x += 32 * (x==line[2] ? 0 : (line[2] > line[0] ? 1 : -1));
+			y += 48 * (y==line[3] ? 0 : (line[3] > line[1] ? 1 : -1));
 			f++;
 		}
 	});
@@ -47,7 +50,8 @@ function pcg_cave() {
 	}
 	
 	obj_player.x = lines[0][0];
-	obj_player.y = lines[0][1]-48;
+	obj_player.y = lines[0][1] - 4;
 	obj_player.setDepth(-9999);
 	
+	room1.generateNodes();
 }
