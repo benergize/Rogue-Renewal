@@ -8,21 +8,23 @@ function Obj_Enemy(x,y) {
 	foe.playerLastX = -1;
 	foe.playerLastY = -1;
 	foe.collisionBox = [0,20,32,18];
-
+	foe.tick = 0;
 
 	foe.ai = function(spd=3) {
 
-		if(obj_player.x != this.playerLastX || obj_player.y != this.playerLastY) {
+		this.tick++;
 
+		if(this.tick > 12 &&(obj_player.x != this.playerLastX || obj_player.y != this.playerLastY)) {
 
 			let croom = game.getCurrentRoom();
 
 			this.generatePath(obj_player.x,obj_player.y+24,croom.gridX,croom.gridY);
 
-			console.log('newpath',this.path);
+		//	console.log('newpath',this.path);
 			this.playerLastX = obj_player.x;
 			this.playerLastY = obj_player.y;
 		}
+		if(this.tick > 12) { this.tick=0;}
 
 		this.pathStep(spd);
 	}

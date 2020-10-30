@@ -19,10 +19,10 @@ obj_roomEditor.onmousemove = function(ev) {
 		 
 		let croom = game.getCurrentRoom();
 
-		let sx = Math.round(Math.round((ev.clientX+croom.view.x- game.engine.canvas.offsetLeft) / 32) * 32);
-		let sy = Math.round(Math.round((ev.clientY+croom.view.y - game.engine.canvas.offsetTop) / 48) * 48);
+		let sx = Math.round(Math.round((ev.clientX+croom.view.x- game.engine.canvas.offsetLeft) / croom.gridX) * croom.gridX);
+		let sy = Math.round(Math.round((ev.clientY+croom.view.y - game.engine.canvas.offsetTop) / croom.gridY) * croom.gridY);
 
-		console.log(croom.mapNodes[sx/32 + "," + sy/48]);
+		console.log(croom.mapNodes[sx/croom.gridX + "," + sy/croom.gridY]);
 
 		if(this.mousePressed == 0) {
 			let ssx = document.querySelector("#tiles");
