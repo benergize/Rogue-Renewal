@@ -26,8 +26,9 @@ function pcg_cave() {
 		let y = line[1];
 		let f = 0;
 
-		if(Math.random() > .7) { room1.roomObjects.push(new Obj_Pickup(x,y)); }
-		else if(Math.random() > .9) { room1.roomObjects.push(new Obj_Enemy(Math.round(x/32)*32,Math.round(y/48)*48)); }
+		let roll = Math.round(Math.random()*20);
+		if(roll < 3) { room1.roomObjects.push(new Obj_Pickup(x,y)); }
+		else if(roll > 19) { room1.roomObjects.push(new Obj_Enemy(Math.round(x/32)*32,Math.round(y/48)*48)); }
 
 		while((x != line[2] || y != line[3]) && f < 50) {
 

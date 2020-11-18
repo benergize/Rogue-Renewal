@@ -11,6 +11,12 @@ var obj_player = new GameObject(
 	-1
 );
 
+obj_player.hp = 100;
+
+obj_player.ondraw = function() {
+	game.engine.ctx.fillRect(15,15, obj_player.hp, 32);
+}
+
 obj_player.inventory = {
 	contents: [],
 	getItems: function(mapOnly=false) {
@@ -76,14 +82,19 @@ obj_player.onkeydown = function(ev) {
 	if(ev.key == "e") { 
 		
 
-		let cols = cr.getObjectsAt(this.x,this.y,false,32,48);
+		let cols = cr.getObjectsAt(this.x,this.y,false,32,56);
 		cols.forEach(obj=>{
 			if(obj.name == "obj_pickup" && !obj.opened) { obj.open(); }
 			if(obj.name == "obj_door") { obj.open(); }
+
+			if(obj.name == "obj_enemy") {
+
+				obj.combat();
+			}
 		}); 
 	}
 
-	room1.getObjects("obj_enemy").forEach(e=>{e.ai();})
+	room1.getObjects("obj_enemy").forEach(e=>{e.ai(0);})
 
 
 } 

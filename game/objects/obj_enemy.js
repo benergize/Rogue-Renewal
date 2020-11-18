@@ -9,10 +9,13 @@ function Obj_Enemy(x,y) {
 	foe.playerLastY = -1;
 	foe.collisionBox = [0,20,32,18];
 	foe.tick = 0;
+	foe.hp = 10;
+	foe.dmg = 7;
+	foe.luck = 2;
 
-	foe.ai = function(spd=3) {
+	foe.ai = function(spd=0) {
 
-		this.tick++;
+		this.tick=13;
 
 		if(this.tick > 12 &&(obj_player.x != this.playerLastX || obj_player.y != this.playerLastY)) {
 
@@ -29,6 +32,16 @@ function Obj_Enemy(x,y) {
 		this.pathStep(spd);
 	}
 
-	foe.onstep = foe.ai;
+	foe.combat = function() {
+
+		let dice = Math.random() * 6;
+
+		if(dice > this.luck) {
+
+			obj_player.hp -= this.dmg + dice;
+		}
+	}
+
+	//foe.onstep = foe.ai;
 	return foe;
 }
