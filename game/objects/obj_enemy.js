@@ -9,11 +9,20 @@ function Obj_Enemy(x,y) {
 	foe.playerLastY = -1;
 	foe.collisionBox = [0,20,32,18];
 	foe.tick = 0;
-	foe.hp = 10;
+	foe.hp = 24;
 	foe.dmg = 7;
-	foe.luck = 2;
+	foe.stats = {
+		str: 3,
+		agi: 3,
+		const: 1,
+		luck:2
+	} 
 
 	foe.ai = function(spd=0) {
+
+		if(this.hp <= 0) {
+			return this.destroy();
+		}
 
 		this.tick=13;
 
@@ -36,12 +45,12 @@ function Obj_Enemy(x,y) {
 
 		let dice = Math.random() * 6;
 
-		if(dice > this.luck) {
+		if(dice > this.stats.luck) {
 
 			obj_player.hp -= this.dmg + dice;
 		}
 	}
-
+ 
 	//foe.onstep = foe.ai;
 	return foe;
 }

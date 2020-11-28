@@ -12,10 +12,14 @@ var obj_player = new GameObject(
 );
 
 obj_player.hp = 100;
-
-obj_player.ondraw = function() {
-	game.engine.ctx.fillRect(15,15, obj_player.hp, 32);
-}
+obj_player.stats = {
+	
+	agi: 5,
+	str: 5,
+	int: 5,
+	sneak: 5,
+	cons: 5
+};
 
 obj_player.inventory = {
 	contents: [],
@@ -79,20 +83,37 @@ obj_player.onkeydown = function(ev) {
 	
 	if(prevPos !== this.x + ',' + this.y) { sou_footstep[Math.floor(Math.random()*sou_footstep.length)].play(.1);  }
 
-	if(ev.key == "e") { 
+	let cols = cr.getObjectsAt(this.x,this.y,false,32,48);
+
+	cols.forEach(obj=>{
+
+		if(ev.key == "e") { 
 		
 
-		let cols = cr.getObjectsAt(this.x,this.y,false,32,56);
-		cols.forEach(obj=>{
 			if(obj.name == "obj_pickup" && !obj.opened) { obj.open(); }
 			if(obj.name == "obj_door") { obj.open(); }
+		}
 
-			if(obj.name == "obj_enemy") {
 
-				obj.combat();
+		if(obj.name == "obj_enemy") {
+
+			obj.combat();
+
+				
+			if(ev.key == "k") {
+
+				let dice = Math.random() * 6;
+
+				if(dice + this.stats.agi > obj.stats.agi + obj.stats.luck) {
+		
+					obj.hp -= this.stats.str + dice;
+				}
+				
 			}
-		}); 
-	}
+		}
+	}); 
+
+	
 
 	room1.getObjects("obj_enemy").forEach(e=>{e.ai(0);})
 
