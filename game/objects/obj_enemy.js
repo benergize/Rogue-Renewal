@@ -10,13 +10,15 @@ function Obj_Enemy(x,y) {
 	foe.collisionBox = [0,20,32,18];
 	foe.tick = 0;
 	foe.hp = 24;
+	foe.maxHp = 24;
 	foe.dmg = 7;
 	foe.stats = {
 		str: 3,
 		agi: 3,
 		const: 1,
 		luck:2
-	} 
+	}
+	foe.pName = "Ghostly Fencer";
 
 	foe.ai = function(spd=0) {
 
@@ -31,8 +33,7 @@ function Obj_Enemy(x,y) {
 			let croom = game.getCurrentRoom();
 
 			this.generatePath(obj_player.x,obj_player.y+24,croom.gridX,croom.gridY);
-
-		//	console.log('newpath',this.path);
+ 
 			this.playerLastX = obj_player.x;
 			this.playerLastY = obj_player.y;
 		}
@@ -47,6 +48,7 @@ function Obj_Enemy(x,y) {
 
 		if(dice > this.stats.luck) {
 
+			echo(this.pName + " hits you for " + Math.round(this.dmg+dice)+" dmg!")
 			obj_player.hp -= this.dmg + dice;
 		}
 	}

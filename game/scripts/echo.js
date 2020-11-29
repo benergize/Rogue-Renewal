@@ -9,7 +9,7 @@ function echo(txt,time=3) {
 			this.alpha -= .05;
 			if(this.alpha <= 0) { this.destroy(); }
 		}
-		game.engine.ctx.font = '24px serif';
+		game.engine.ctx.font = '13px Georgia';
 		game.engine.ctx.fillStyle = 'rgba(0,0,0,' + this.alpha + ")";
 		game.engine.ctx.fillText(txt, this.x+2, this.y+3);
 		game.engine.ctx.fillStyle = 'rgba(255,255,255,' + this.alpha + ")";
