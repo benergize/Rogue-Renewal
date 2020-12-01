@@ -86,7 +86,8 @@ obj_hudAndEffects.onkeypress = function(ev) {
 			let px = Math.round(obj_player.x/32);
 			let py = Math.round(obj_player.y/48);
  
-			let inRange = game.mDistance(sx,sy,px,py) < 6;
+			let distance = game.mDistance(sx,sy,px,py);
+			let inRange = distance < 6;
 			let discovered = this.dmap[y][x][0];  
 			let accessible = true;
 
@@ -105,8 +106,10 @@ obj_hudAndEffects.onkeypress = function(ev) {
 
 			let color = -1;
 			if(accessible || discovered) { 
+
+				let c = Math.min(1,distance/12);
 				if(inRange) { color = -1; }
-				else { color = "rgba(0,0,0,.5)"; }
+				else { color = "rgba(0,0,0,"+c+")"; }
 
 				this.dmap[y][x][0] = true;
 			}
