@@ -48,6 +48,7 @@ function Obj_Enemy(x,y) {
 
 		if(dice > this.stats.luck) {
 
+			sou_punch[Math.floor(Math.random()*sou_punch.length)].play();
 			echo(this.pName + " hits you for " + Math.round(this.dmg+dice)+" dmg!")
 			obj_player.hp -= this.dmg + dice;
 		}

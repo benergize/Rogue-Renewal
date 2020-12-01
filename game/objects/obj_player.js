@@ -55,7 +55,7 @@ obj_player.inventory.push = obj_player.inventory.addItem;
 
 obj_player.onkeydown = function(ev) {
 	
-	console.log(this); 
+	//console.log(this); 
 
 	let cr = game.getCurrentRoom();
 	let cb = this.collisionBox;
@@ -93,6 +93,10 @@ obj_player.onkeydown = function(ev) {
 				if(dice + this.stats.agi > obj.stats.agi + obj.stats.luck) {
 		
 					obj.hp -= this.stats.str + dice;
+					
+					echo("You hit the " + obj.pName + " for " + (this.stats.str + dice) + " dmg!");
+
+					sou_punch[Math.floor(Math.random()*sou_punch.length)].play();
 				}
 				
 			}

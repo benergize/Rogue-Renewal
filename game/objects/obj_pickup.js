@@ -24,6 +24,10 @@ function Obj_Pickup(x,y,sprite = new Sprite("spr_pickup","game/sprites/items.png
 			obj_player.inventory.push(item);
 		}
 
+		if(item === -1) {
+			sou_emptyChest.play();
+		}
+
 		return echo("Found " + (typeof item.name != "undefined" ? item.name + "." : " nothing."),3);
 
 
