@@ -62,9 +62,11 @@ obj_hudAndEffects.ondraw = function() {
 	//Enemy health bars
 	room.getObjects("obj_enemy").forEach(enemy=>{
 		
-		game.engine.ctx.strokeStyle = "black";
-		game.engine.ctx.strokeRect(-room.view.x + (enemy.x + (enemy.sprite.drawWidth / 2) - (enemy.hp)), -room.view.y + (enemy.y - 12), (enemy.hp) * 2, 6);
-		game.engine.ctx.fillRect(-room.view.x + (enemy.x + (enemy.sprite.drawWidth / 2) - (enemy.hp)), -room.view.y + (enemy.y - 12), (enemy.hp) * 2, 6);
+		if(game.mDistance(obj_player.x,obj_player.y,enemy.x,enemy.y) < 6*32) {  
+			game.engine.ctx.strokeStyle = "black";
+			game.engine.ctx.strokeRect(-room.view.x + (enemy.x + (enemy.sprite.drawWidth / 2) - (enemy.hp)), -room.view.y + (enemy.y - 12), (enemy.hp) * 2, 6);
+			game.engine.ctx.fillRect(-room.view.x + (enemy.x + (enemy.sprite.drawWidth / 2) - (enemy.hp)), -room.view.y + (enemy.y - 12), (enemy.hp) * 2, 6);	
+		} 
 		
 	});
 
@@ -123,3 +125,5 @@ obj_hudAndEffects.onkeypress = function(ev) {
 		}
 	}
 }
+
+obj_hudAndEffects.onmousedown = obj_hudAndEffects.onkeypress;

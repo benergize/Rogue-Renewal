@@ -1,6 +1,6 @@
 var obj_roomEditor = new GameObject("obj_roomEditor");
 
-
+/*
 obj_roomEditor.onmousedown = function(ev) {
 
 	this.mousePressed = ev.button; 
@@ -45,7 +45,7 @@ obj_roomEditor.onmousemove = function(ev) {
 		}
 	}
 }
-
+*/
 obj_roomEditor.oncontextmenu = function(ev) {
 	ev.preventDefault();  
 }

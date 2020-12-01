@@ -51,7 +51,29 @@ obj_player.inventory = {
 	}
 };
 obj_player.inventory.push = obj_player.inventory.addItem;
- 
+
+obj_player.onmousedown = function(ev) {
+
+	console.log(ev);
+
+	let x = ev.layerX;
+	let y = ev.layerY;
+	console.log(x,y);
+
+	if(x > game.engine.canvas.width/2) { obj_player.onkeydown({"key":"d"}); }
+	if(x < game.engine.canvas.width/2) { obj_player.onkeydown({"key":"a"}); }
+	if(y < game.engine.canvas.height/2) { obj_player.onkeydown({"key":"w"}); }
+	if(y > game.engine.canvas.height/2) { obj_player.onkeydown({"key":"s"}); }
+
+	game.getCurrentRoom().getObjectsAt(obj_player.x, obj_player.y+obj_player.collisionBox[1], false, obj_player.collisionBox[2], obj_player.collisionBox[3]).forEach(obj=>{
+
+		if(game.mDistance(obj_player.x,obj_player.y,obj.x,obj.y) < 32) {
+			
+			if(obj.name == "obj_enemy") { obj_player.onkeydown({"key":"k"}); }
+			if(obj.name == "obj_pickup") { obj_player.onkeydown({"key":"e"}); }
+		}
+	});
+}
 
 obj_player.onkeydown = function(ev) {
 	
@@ -94,7 +116,7 @@ obj_player.onkeydown = function(ev) {
 		
 					obj.hp -= this.stats.str + dice;
 					
-					echo("You hit the " + obj.pName + " for " + (this.stats.str + dice) + " dmg!");
+					echo("You hit the " + obj.pName + " for " + Math.round(this.stats.str + dice) + " dmg!");
 
 					sou_punch[Math.floor(Math.random()*sou_punch.length)].play();
 				}
