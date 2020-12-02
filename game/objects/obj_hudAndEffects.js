@@ -6,8 +6,56 @@ obj_hudAndEffects.player = {
 	dmp: obj_player.mp
 };
 
+obj_hudAndEffects.ui = {
+	x: 64,
+	y: -720,
+	width:640-128,
+	height:480-128,
+	open:0,
+	show: function() {
+		this.y += 4;
+		if(this.y < 64) { this.open = .5; setTimeout(function(){obj_hudAndEffects.ui.show()},4); }
+		else { this.open = 1; }
+	},
+	draw: function() {
+		if(this.open > 0) {
+
+			game.engine.ctx.fillRect(this.x,this.y,this.width,this.height);
+			game.engine.ctx.strokeStyle = '#5674bd';
+			game.engine.ctx.strokeRect(this.x,this.y,this.width,this.height);
+			game.engine.ctx.strokeRect(this.x+4,this.y+4,this.width-8,this.height-8);
+			game.engine.ctx.fillStyle = "white";
+
+			//Draw player name, level and class
+			game.engine.ctx.fillText(`${obj_player.name} - Level ${obj_player.level} ${obj_player.class}`, this.x+24,this.y+32);
+
+			//HP,MP,
+			game.engine.ctx.fillText(`HP: ${Math.round(obj_hudAndEffects.player.dhp)}/${obj_player.maxHp} | MP: 100/100`,this.x+24,this.y+48);
+
+			//Right hand side divider
+			let dx = this.x+340;
+			game.engine.ctx.strokeRect(dx,this.y+48,1,this.height-96);
+			game.engine.ctx.strokeRect(409+16,this.y+207-48,128,1);
+			
+			let br = this.y + 64;
+			let brs = 18;
+			game.engine.ctx.fillText(`AGI: ${obj_player.stats.agi}`, dx+24, br ); br += brs;
+			game.engine.ctx.fillText(`STR: ${obj_player.stats.str}`, dx+24, br ); br += brs;
+			game.engine.ctx.fillText(`SNE: ${obj_player.stats.sneak}`, dx+24, br ); br += brs;
+			game.engine.ctx.fillText(`CON: ${obj_player.stats.cons}`, dx+24, br ); br += brs;
+			game.engine.ctx.fillText(`INT: ${obj_player.stats.int}`, dx+24, br ); br += brs;
+
+		}
+	}
+};
+
 obj_hudAndEffects.onroomstart = function() {
-	console.log('running');
+	 
+	this.generateGraph();
+	game.engine.ctx.font = "12px Monospace";
+}
+
+obj_hudAndEffects.generateGraph = function() {
 	let map = [];
 	this.dmap=[];
 	for(let y = 0; y < room1.height/48; y++) {
@@ -17,15 +65,16 @@ obj_hudAndEffects.onroomstart = function() {
 			map[y][x] = room1.getObjectsAt(1+(x*32),1+(y*48),true,0,0).length>0?"A":" ";
 			this.dmap[y][x] = [false,"black"];
 		}
-	}
-	console.log(map,this.dmap)
+	} 
 	this.map = map;
+	this.computeShadows();
 }
 
 
 obj_hudAndEffects.ondraw = function() {
 	
 	let room = game.getCurrentRoom();
+
 
 	for(let y = 0; y < this.dmap.length; y++) {
 		for(let x = 0; x < this.dmap[y].length; x++) {
@@ -40,6 +89,9 @@ obj_hudAndEffects.ondraw = function() {
 
 	if(obj_player.hp < this.player.dhp) { this.player.dhp -= Math.abs(this.player.dhp-obj_player.hp)/5; }
 	if(obj_player.hp > this.player.dhp) { this.player.dhp += Math.abs(this.player.dhp-obj_player.hp)/5; }
+
+	
+	this.ui.draw();
 
 	//Hud
 
@@ -75,7 +127,9 @@ obj_hudAndEffects.ondraw = function() {
 
 }
 
-obj_hudAndEffects.onkeypress = function(ev) {
+obj_hudAndEffects.onkeypress = function(){this.computeShadows();}
+
+obj_hudAndEffects.computeShadows = function() {
 
 	for(let y = 0; y < this.map.length; y++) {
 

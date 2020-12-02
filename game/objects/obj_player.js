@@ -7,11 +7,14 @@ var obj_player = new GameObject(
 	-1,
 	true,
 	true,
-	[0,24,24,14],
+	[1,24,24,11],
 	-1
 );
-
+obj_player.pname = "Darius Wildwand";
+obj_player.class = "Explorer"
 obj_player.hp = 100;
+obj_player.maxHp=100;
+obj_player.level = 1;
 obj_player.stats = {
 	
 	agi: 5,
@@ -86,7 +89,32 @@ obj_player.onkeydown = function(ev) {
 	if(ev.key == "a" && cr.checkEmpty(-16 + this.x + cb[0], this.y + cb[1], true, cb[2], cb[3])) { this.x -= 16; } 
 	if(ev.key == "d" && cr.checkEmpty( 16 + this.x + cb[0], this.y + cb[1], true, cb[2], cb[3])) { this.x += 16; } 
 	if(ev.key == "w" && cr.checkEmpty( this.x + cb[0],-12 + this.y + cb[1], true, cb[2], cb[3])) { this.y -= 12; } 
-	if(ev.key == "s" && cr.checkEmpty( this.x + cb[0], 12 + this.y + cb[1], true, cb[2], cb[3])) { this.y += 12; }  
+	if(ev.key == "s" && cr.checkEmpty( this.x + cb[0], 12 + this.y + cb[1], true, cb[2], cb[3])) { this.y += 12; }
+
+	let x = this.x;
+	let y = this.y;
+	if(x < 0 || x > cr.width || y < 0 || y > cr.height) {
+
+
+		console.log(this.x,this.y);
+
+		if(this.x > cr.width) { this.x = 4; }
+		else if(this.x < 0) { this.x = cr.width - 56; }
+		if(this.y < 0) { this.y = cr.height - 56; }
+		else if(this.y > cr.height) { this.y = 0; }
+		
+		//this.x = x < 0 ? cr.width-32 : (x > cr.width ? 32 : x);
+		//this.y = y < 0 ? cr.height-48 : (y > cr.height ? 48 : y);
+		
+		console.log(this.x,this.y);
+
+		this.snapToGrid(16,48);
+		console.log(this.x,this.y);
+
+		pcg_cave(false);
+
+		//this.x+=4;
+	}
 
 	
 	if(prevPos !== this.x + ',' + this.y) { sou_footstep[Math.floor(Math.random()*sou_footstep.length)].play(.1);  }

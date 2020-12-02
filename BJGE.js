@@ -183,10 +183,12 @@ function GameEngine(canvas, fps=24) {
 	this.mDistance = function(x1,y1,x2,y2) {
 		return Math.abs(x1-x2) + Math.abs(y1-y2);
 	}
-	this.distance = function(x1,y1,x2,y2) {
-		return Math.sqrt((Math.abs(x1-x2)**2) + (Math.abs(y1-y2)**2));
+	this.distance = function(x1,y1,x2,y2,precise=true) {
+		return precise?(Math.sqrt((Math.abs(x1-x2)**2) + (Math.abs(y1-y2)**2))):this.mDistance(x1,y1,x2,y2);
 	}
-
+	this.snap = function(number,snapTo) { return Math.round(number/snapTo) * snapTo; }	
+	this.random = function(min=0,max=1) { return (Math.random() * ((max)-min)) + min;  }
+	this.irandom = function(min=0,max=1) { return Math.floor(Math.random() * ((max+1)-min)) + min;  }
 
 
 	this.engine = {};
@@ -270,7 +272,9 @@ function GameEngine(canvas, fps=24) {
 
 			croom.roomObjects.forEach(obj=>{ if(typeof obj["on" + event] === "function") { 
 
-				obj["on" + event](e); 
+				let local = (e.type.indexOf("mouse")!==-1||e.type.indexOf('context')!==-1) && GAME_ENGINE_INSTANCE.getIntersecting(obj.x+obj.collisionBox[0],obj.y+obj.collisionBox[1],
+					obj.x+obj.collisionBox[0]+obj.collisionBox[2],obj.y+obj.collisionBox[1]+obj.collisionBox[3],e.x,e.y,e.x,e.y);
+					obj["on" + event](e,local);
 			} });  
 		}
 	});
@@ -588,6 +592,19 @@ function GameEngine(canvas, fps=24) {
 
 	this.deactivate = function() { return this.active = false; }
 	this.activate = function() { return this.active = true; }
+
+	this.snapToGrid = function(width=-1,height=-1) {
+
+		if(width === -1) { width = game.getCurrentRoom().gridX; }
+		if(height === -1) { height = game.getCurrentRoom().gridY; }
+
+		if(width <= 0 || height <= 0) { console.error("Must snap to at least 1x1 grid."); return false; }
+		
+		this.x = Math.round(this.x/width) * width;
+		this.y = Math.round(this.y/height) * height;
+
+		return true;
+	}
 	
 	GAME_ENGINE_INSTANCE.objects.push(this);
 	
@@ -688,7 +705,9 @@ function GameEngine(canvas, fps=24) {
 		return true;
 	}
 	
-	this.getObject = function(ind) {
+	this.getObject = function(ind=-1) {
+
+		if(typeof ind === "object") { return ind; }
 
 		for(let i = 0; i < this.roomObjects.length; i++) {
 			let obj = this.roomObjects[i];
@@ -698,14 +717,17 @@ function GameEngine(canvas, fps=24) {
 		return false;
 	}
 
-	this.getObjects = function(ind) {
+	this.getObjects = function(ind=-1) {
 		
 		let objects = [];
 
-		if(typeof ind === "object") { return ind; }
-
 		this.roomObjects.forEach(obj=>{
-			if(obj[typeof ind === "string" ? "name" : "id"] === ind) { objects.push(obj); }
+
+			if(Array.isArray(ind)) {
+				if(ind.indexOf(obj.name) !== -1) { objects.push(obj); } 
+			}
+
+			else if(obj[typeof ind === "string" ? "name" : "id"] === ind) { objects.push(obj); }
 		});
 		
 		return objects;

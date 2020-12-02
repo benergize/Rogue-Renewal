@@ -1,12 +1,24 @@
-function pcg_cave() {
+function pcg_cave(movePlayer=true) {
+
+	game.getCurrentRoom().getObjects(["obj_enemy","obj_pickup","obj_wall"]).forEach(obj=>{
+		obj.destroy();
+	});
 
 	lines = [];
 	points = [];
+
+	if(!movePlayer) {
+	
+		lines.push([obj_player.x,obj_player.y,game.snap(game.irandom(1280),32),obj_player.y]);
+		lines.push([obj_player.x,obj_player.y,obj_player.x,game.snap(game.irandom(720),48)]);
+		console.log(lines);
+	}
+
 	for(let f = 0; f < 25; f++) {
 		
-		let x1 = Math.floor(Math.floor(Math.random()*1280)/32)*32;
-		let x2 = Math.floor(Math.floor(Math.random()*1280)/32)*32;
-		let y1 = Math.floor(Math.floor(Math.random()*720)/48)*48;
+		let x1 = game.snap(game.irandom(1280),32);
+		let x2 = game.snap(game.irandom(1280),32);
+		let y1 = game.snap(game.irandom(720),48);
 		let y2 = y1;
 	
 		lines.push([x1,y1,x2,y2]);
@@ -14,10 +26,10 @@ function pcg_cave() {
 	
 	for(let f = 0; f < 25; f++) {
 		
-		let x1 = Math.floor(Math.floor(Math.random()*1280)/32)*32;
+		let x1 = game.snap(game.irandom(1280),32);
 		let x2 = x1;
-		let y1 = Math.floor(Math.floor(Math.random()*720)/48)*48;
-		let y2 = Math.floor(Math.floor(Math.random()*720)/48)*48;
+		let y1 = game.snap(game.irandom(720),48);
+		let y2 = game.snap(game.irandom(720),48);
 	
 		lines.push([x1,y1,x2,y2]);
 	}
@@ -44,7 +56,7 @@ function pcg_cave() {
 	
 	for(let x = 0; x < 1280; x += 32) {
 		for(let y = 0; y < 720; y+=48){ 
-			if(points.indexOf(x+","+y) == -1) {
+			if(points.indexOf(x+","+y) == -1 && game.mDistance(x,y,obj_player.x,obj_player.y) > 48) {
 				room1.roomObjects.push(new Obj_Wall(x,y))
 			}
 		}
@@ -55,4 +67,5 @@ function pcg_cave() {
 	obj_player.setDepth(-9999);
 	
 	room1.generateNodes();
+	obj_hudAndEffects.generateGraph(); 
 }
