@@ -11,6 +11,7 @@ var obj_player = new GameObject(
 	-1
 );
 obj_player.pname = "Darius Wildwand";
+obj_player.gold = 0;
 obj_player.class = "Explorer"
 obj_player.hp = 100;
 obj_player.maxHp=100;

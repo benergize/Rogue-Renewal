@@ -12,10 +12,19 @@ obj_hudAndEffects.ui = {
 	width:640-128,
 	height:480-128,
 	open:0,
+	toggle: function() {
+		if(this.open === 0) { this.show(); }
+		if(this.open === 1) { this.hide();  }
+	},
 	show: function() {
 		this.y += 4;
-		if(this.y < 64) { this.open = .5; setTimeout(function(){obj_hudAndEffects.ui.show()},4); }
+		if(this.y < 64) { this.open = .5; setTimeout(function(){obj_hudAndEffects.ui.show()},1); }
 		else { this.open = 1; }
+	},
+	hide: function() {
+		this.y -= 4;
+		if(this.y > -720) { this.open = .5; setTimeout(function(){obj_hudAndEffects.ui.hide()},1); }
+		else { this.open = 0; }
 	},
 	draw: function() {
 		if(this.open > 0) {
@@ -127,7 +136,11 @@ obj_hudAndEffects.ondraw = function() {
 
 }
 
-obj_hudAndEffects.onkeypress = function(){this.computeShadows();}
+obj_hudAndEffects.onkeypress = function(e){
+	this.computeShadows();
+
+	if(e.key === "i") { this.ui.toggle(); }
+}
 
 obj_hudAndEffects.computeShadows = function() {
 

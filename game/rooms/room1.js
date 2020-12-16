@@ -6,5 +6,4 @@ room1.addObject(obj_player);
 room1.addObject(obj_roomEditor);
 room1.addObject(obj_hudAndEffects);
 console.log(room1.roomObjects);
-
-game.addRoom(room1);
+ 
