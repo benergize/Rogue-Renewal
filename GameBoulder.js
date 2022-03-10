@@ -7,6 +7,7 @@ function GameEngine(canvas, fps=24) {
 	this.sounds = [];
 	this.tiles = [];
 	this.backgrounds = [];
+	this.gridMaps = [];
 
 	this.currentRoom =  -1;
 	this.status = "active";
@@ -25,7 +26,7 @@ function GameEngine(canvas, fps=24) {
 
 	this.getEngineResources = function(search = -1) {
 
-		let res = this.rooms.concat(this.sprites).concat(this.resources).concat(this.objects).concat(this.sounds).concat(this.tiles).concat(this.backgrounds);
+		let res = this.rooms.concat(this.sprites).concat(this.gridMaps).concat(this.resources).concat(this.objects).concat(this.sounds).concat(this.tiles).concat(this.backgrounds);
 		return search === -1 ? res : res.filter(el=>{ return typeof search === "number" ? el.id === search : el.name === search; });
 	}
 
@@ -33,13 +34,36 @@ function GameEngine(canvas, fps=24) {
 		return typeof search === "object" ? search : 
 			this.sprites.filter(spr=>{return typeof search === "number" ? spr.id === search : spr.name === search; })[0];
 	}
+	this.getRoom = function(search = "") {
+		return typeof search === "object" ? search : 
+			this.rooms.filter(roo=>{return typeof search === "number" ? roo.id === search : roo.name === search; })[0];
+	}
+	this.getObject = function(search = "") {
+		return typeof search === "object" ? search : 
+			this.objects.filter(obj=>{return typeof search === "number" ? obj.id === search : obj.name === search; })[0];
+	}
+	this.getGridMap = function(search = "") {
+		return typeof search === "object" ? search : 
+			this.gridMaps.filter(map=>{return typeof search === "number" ? map.id === search : map.name === search; })[0];
+	}
+	this.getSound = function(search = "") {
+		return typeof search === "object" ? search : 
+			this.sounds.filter(sou=>{return typeof search === "number" ? sou.id === search : sou.name === search; })[0];
+	}
 
 	this.keysHeld = {};
+	this.mouseHeld = {};
 
-	this.checkKey = function(key) {
+	this.checkKey = function(key, ignoreCase=false) {
 
 		if(typeof this.keysHeld[key] === 'undefined') { return false; }
-		return this.keysHeld[key];
+		return this.keysHeld[key] || (ignoreCase && (this.keysHeld[key.toLowerCase()] || this.keysHeld[key.toUpperCase()]));
+	}
+
+	this.checkMouse = function(btn) {
+
+		if(typeof this.mouseHeld[btn] === 'undefined') { return false; }
+		return this.mouseHeld[btn];
 	}
 	
 	this.update = function(test) {
@@ -59,10 +83,7 @@ function GameEngine(canvas, fps=24) {
 		let room = this.rooms[this.currentRoom];
 	
 		if(typeof room === "undefined") { return false; }
-
-		
-		//this.engine.ctx.clearRect(0,0,this.engine.canvas.width,this.engine.canvas.height);
-		 
+  
 
 		room.draw();
 		
@@ -104,13 +125,6 @@ function GameEngine(canvas, fps=24) {
 
 		this.rooms.push(room);
 	}
-	
-	this.getRoom = function(ind) { 
-
-		this.rooms.forEach(roo=>{
-			if(roo[typeof ind === "string" ? "name" : "id"] === ind) { return roo; }
-		});
-	},
 	
 	this.getCurrentRoom = function() {
 		
@@ -162,12 +176,12 @@ function GameEngine(canvas, fps=24) {
 
 			croom.tiles.push(tile);
 		});
-		//{"sprite":{"fileName":"game/sprites/tilese2.png","resource":{},"sheetX":0,"sheetY":0,"sheetWidth":32,"sheetHeight":48,"drawWidth":32,"drawHeight":48,"id":38},"x":288,"y":240,"solid":true,"properties":[],"id":39}
+		
 	}
 
 
 	this.begin = function() { 
-		//setInterval(fn=>{this.update();}, 1000 / this.fps); 
+		
 		let self = this;
 		requestAnimationFrame(function() { self.update(); });
 	}
@@ -188,24 +202,122 @@ function GameEngine(canvas, fps=24) {
 	this.distance = function(x1,y1,x2,y2,precise=true) {
 		return precise?(Math.sqrt((Math.abs(x1-x2)**2) + (Math.abs(y1-y2)**2))):this.mDistance(x1,y1,x2,y2);
 	}
+	this.degToRad = function(deg) { return (-deg) * .01745329251 }
+	this.radToDeg = function(rad) { return rad * 180/Math.PI; }//57.295827908797776; }
 	this.getPointDirection = function(direction, distance) {
 		
-		var rad = (-direction) * .01745329251;
+		var rad = this.degToRad(direction);//(-direction) * .01745329251;
 		let x = (Math.cos(rad) * distance);
 		let y = (Math.sin(rad) * distance);
 
 		return [x,y];
 	}
 	this.getPointDir = this.getPointDirection;
+	this.getDirectionFromPoints = function(x1,y1,x2,y2) {
+		let d =  this.radToDeg(Math.atan2(y2-y1,x2-x1)); 
+		return d < 0 ? d * -1 : 360 - d
+	}
 
 	this.snap = function(number,snapTo) { return Math.round(number/snapTo) * snapTo; }	
 	this.random = function(min=0,max=1) { return (Math.random() * ((max)-min)) + min;  }
 	this.irandom = function(min=0,max=1) { return Math.floor(Math.random() * ((max+1)-min)) + min;  }
-
+	this.choose = function(array) {
+		if(!Array.isArray(array)) { return false; }
+		return array[Math.floor(Math.random()*array.length)];
+	}
 
 	this.engine = {};
+	
+	this.flipCoin = function(word=false) {
+		return word ? ["heads","tails"][Math.round(Math.random())] : Math.round(Math.random());
+	}
+	this.coinToss = this.flipCoin;
+
+	this.engine.MB_LEFT = 0;
+	this.engine.MB_RIGHT = 2;
+	this.engine.MB_MIDDLE = 1;
+
 	this.engine.canvas = typeof canvas === "object" ? canvas : document.querySelector(canvas);
 	this.engine.ctx = this.engine.canvas.getContext("2d");
+
+	this.draw = {
+
+		_ctx: function() { return GAME_ENGINE_INSTANCE.engine.ctx },
+		setColor: function(color,fill) {
+
+			if(color !== -1) { this._ctx()[fill ? "fillStyle" : "strokeStyle"] = color; }
+		},
+		rect: function(x, y, width, height, fill=true, color = -1) {
+
+			let croom = GAME_ENGINE_INSTANCE.getCurrentRoom();
+			this.setColor(color,fill); 
+			this._ctx()[fill ? 'fillRect' : 'strokeRect'](-croom.view.x + x, -croom.view.y + y, width, height);
+		},
+		text: function(text, x, y, fill=true, color=-1) {
+
+			let croom = GAME_ENGINE_INSTANCE.getCurrentRoom();
+			this.setColor(color,fill); 
+			this._ctx()[fill ? 'fillText' : 'strokeText'](text, -croom.view.x + x, -croom.view.y + y);
+		},
+		arc: function(x,y,startAngle,endAngle,counterClockWise) {
+						
+			let croom = GAME_ENGINE_INSTANCE.getCurrentRoom();
+			this.setColor(color,false);
+
+			ctx.beginPath();
+			ctx.arc(-croom.view.x+x, -croom.view.y+y, GAME_ENGINE_INSTANCE.degToRad(startAngle), GAME_ENGINE_INSTANCE.degToRad(endAngle), counterClockWise);
+			ctx.stroke();
+		},
+		ellipse: function(x,y,radiusX,radiusY,rotation,startAngle,endAngle,antiClockWise=false) {
+			
+			let croom = GAME_ENGINE_INSTANCE.getCurrentRoom();
+			this.setColor(color,false);
+			 
+
+			this._ctx.beginPath();
+			this._ctx.ellipse(-croom.view.x+ x, -croom.view.y+y, radiusX, radiusY, GAME_ENGINE_INSTANCE.degToRad(rotation), GAME_ENGINE_INSTANCE.degToRad(startAngle), GAME_ENGINE_INSTANCE.degToRad(endAngle),antiClockWise);
+			this._ctx.endPath();
+		},
+		image: function(img,sx=0,sy=0,swidth=false,sheight=false,x=false,y=false,width=false,height=false) {
+
+			let croom = GAME_ENGINE_INSTANCE.getCurrentRoom();
+			this.setColor(color,false);
+			 
+
+			if(x === false && y === false && swidth === false && sheight === false) {
+				this._ctx().drawImage(img,-croom.view.x + sx,-croom.view.y + sy);
+			}
+			else if(x === false && y === false) {
+				this._ctx().drawImage(img,-croom.view.x + sx,-croom.view.y + sy,swidth,sheight);
+			}
+			else {
+				this._ctx().drawImage(img,sx,sy,swidth,sheight,-croom.view.x+x,-croom.view.y+y,width===false?swidth:width,height===false?sheight:height);
+			}
+		},
+		line: function(coordinates=[[]], width=1, color=-1) {
+
+			
+			let croom = GAME_ENGINE_INSTANCE.getCurrentRoom();
+			this.setColor(color,false);
+			
+			this._ctx().beginPath();
+
+			coordinates.forEach((coord,it)=>{
+
+				if(coord.length === 2) {
+					if(typeof coord[0] === 'number' && typeof coord[1] === 'number') {
+						
+						this._ctx()[it === 0 ? 'moveTo' : 'lineTo'](-croom.view.x + coord[0],-croom.view.y + coord[1]);
+					}
+				}
+			});
+
+			this._ctx().lineWidth = width;
+			this._ctx().stroke();
+		}
+
+
+	};
 
 	this.engine.workingCanvas = document.createElement("canvas");
 	this.engine.workingCtx = this.engine.workingCanvas.getContext("2d");
@@ -279,18 +391,32 @@ function GameEngine(canvas, fps=24) {
 
 		if(typeof e.type != "undefined") {
 
-			GAME_ENGINE_INSTANCE.keysHeld[e.key] = e.type == "keypress" || e.type == "keydown";
+			if(String(e.type).indexOf("mouse") == -1) { GAME_ENGINE_INSTANCE.keysHeld[e.key] = e.type == "keypress" || e.type == "keydown"; }
+			else if(String(e.type).indexOf("move") == -1) { GAME_ENGINE_INSTANCE.mouseHeld[e.button] = e.type == "contextmenu" || e.type == "mousedown";  }
 		}
+ 
 
 		let croom = GAME_ENGINE_INSTANCE.getCurrentRoom(); 
 		if(typeof croom === "object") { 
 
 			croom.roomObjects.forEach(obj=>{ if(typeof obj["on" + event] === "function") { 
 
-				let local = (e.type.indexOf("mouse")!==-1||e.type.indexOf('context')!==-1) && GAME_ENGINE_INSTANCE.getIntersecting(obj.x+obj.collisionBox[0],obj.y+obj.collisionBox[1],
-					obj.x+obj.collisionBox[0]+obj.collisionBox[2],obj.y+obj.collisionBox[1]+obj.collisionBox[3],e.x,e.y,e.x,e.y);
-					obj["on" + event](e,local);
-			} });  
+				
+				let extraArgs = (e.type.indexOf("mouse")!==-1||e.type.indexOf('context')!==-1) ? {
+
+					X: e.offsetX,
+					Y: e.offsetY,
+					button: e.button,
+					buttonString: e.button == 0 ? "left" : 
+									e.button == 1 ? "middle" : 
+										e.button == 2 ? "right" : "?",
+					over: GAME_ENGINE_INSTANCE.getIntersecting(obj.x+obj.collisionBox[0],obj.y+obj.collisionBox[1],
+							obj.x+obj.collisionBox[0]+obj.collisionBox[2],obj.y+obj.collisionBox[1]+obj.collisionBox[3],e.x,e.y,e.x,e.y)
+				
+				} : {};
+
+				obj["on" + event](e, extraArgs);
+			}});  
 		}
 	});
 });function Background(arg0, sprite = -1, tiled = true) {
@@ -336,24 +462,26 @@ function GameEngine(canvas, fps=24) {
 	
 	let argObj = typeof arg0 === "object";
 	
-	this.name = argObj ? arg0.name : arg0;
-	this.x = argObj ? arg0.x : x;
-	this.y = argObj ? arg0.y : y;
+		
+	this.name = argObj ? argObj.name : arg0;
+	this.x = x;
+	this.y = y;
 	this.xstart = x;
 	this.ystart = y;
 	this.xprevious = x;
 	this.yprevious = y;
 
-	this.sprite = argObj ? arg0.sprite : sprite;
+	this.sprite = sprite;
 
 	this.depth = depth;
 	
-	this.visible = argObj ? arg0.visible : visible;
-	this.active = argObj ? arg0.active : active;
+	this.visible = visible;
+	this.active = active
 	
-	this.onstep = argObj ? arg0.step : step;
-	this.ondraw = argObj ? arg0.draw : draw;
-	this.ondestroy = argObj ? arg0.destroy : destroy;
+	this.onstep = step;
+	this.ondraw = draw;
+	this.ondestroy = destroy;
+	this.oncreate = function(){};
 	
 	this.hspeed = 0;
 	this.vspeed = 0;
@@ -363,9 +491,36 @@ function GameEngine(canvas, fps=24) {
 	this.fallSpeed = 0;
 	this.terminalVelocity = 24;
 
+	this.vars = {};
+	this.functions = {};
+	
+	
+	if(argObj) {
+		for(let prop in arg0) {
+			this[prop] = arg0[prop];
+		}
+	}
+
+	if(typeof this.sprite == "string") { this.sprite = GAME_ENGINE_INSTANCE.getSprite(this.sprite); }
+
 	this.collisionBox = collisionBox === false ? typeof this.sprite === "object" ? [0,0,this.sprite.drawWidth,this.sprite.drawHeight] : [0,0,16,16] : collisionBox;
 	
+	this.regenerateCollisionBox = function() {
+		this.collisionBox = collisionBox === false ? typeof this.sprite === "object" ? [0,0,this.sprite.drawWidth,this.sprite.drawHeight] : [0,0,16,16] : collisionBox;
+	}
+		
+	
 	this.id = GAME_ENGINE_INSTANCE.generateID();
+
+	this.tags = {
+		"tags": [],
+		"list": function() { return this.tags; },
+		"has": function(tag) { return this.tags.indexOf(tag) !== -1; },
+		"get": function(tag) { return this.tags.indexOf(tag); },
+		"add": function(tag) { if(!this.has(tag)) { return this.tags.push(tag); } else { return false; } },
+		"push": function(tag) { if(!this.has(tag)) { return this.tags.push(tag); } else { return false; } },
+		"remove": function(tag) { return this.tags.filter(el=>{ return el != tag; }); }
+	};
 
 	this.getCoordinates = function(object=true) {
 		
@@ -509,6 +664,46 @@ function GameEngine(canvas, fps=24) {
 
 		return croom.getAllAt(x1,y1,solidOnly,x2-x1,y2-y1,[this.id]);
 	}
+	
+	this.getObjNearest = function(obj=-1) {
+		
+		let croom = GAME_ENGINE_INSTANCE.getCurrentRoom();
+		let objName = -1;
+		
+		if(obj !== -1) {
+			obj = croom.getObject(obj);
+			if(obj === false) { return false; }
+			objName = obj.name;
+		}
+		
+		let closestDist = 999999999;
+		let closestObj = -1;
+		
+		croom.getObjects().forEach(ins=>{
+			let dist = game.distance(ins.x,ins.y,this.x,this.y,false);
+			if(dist < closestDist && (objName === -1 || ins.name == objName)) {
+				closestDist = dist;
+				closestObj = ins;
+			}
+		});
+		
+		return closestObj;
+		
+		
+	}
+	
+	this.setSpeed = function(speed=0,dir=0) {
+		
+		let offset = GAME_ENGINE_INSTANCE.getPointDirection(dir,speed);
+		this.hspeed = offset[0];
+		this.vspeed = offset[1];
+	}
+	this.addSpeed = function(speed=0,dir=0) {
+		
+		let offset = GAME_ENGINE_INSTANCE.getPointDirection(dir,speed);
+		this.hspeed += offset[0];
+		this.vspeed += offset[1];
+	}
 
 	this.getOutsideRoom = function() {
 		let croom = GAME_ENGINE_INSTANCE.getCurrentRoom();
@@ -553,6 +748,7 @@ function GameEngine(canvas, fps=24) {
 				//and B. are closer than the current node
 				let viable = currentNode.exits.filter(adjacentNode=>{ /**/ 
 					return struckNodes.indexOf(adjacentNode) === -1 &&
+					//typeof weightedNodes[adjacentNode] != "undefined" &&
 					weightedNodes[adjacentNode].dist <= currentNode.dist &&
 					path.indexOf(adjacentNode) === -1; 
 				});
@@ -601,9 +797,7 @@ function GameEngine(canvas, fps=24) {
 		let destX = Math.round(dx / gridX);
 		let destY = Math.round(dy / gridY); 
 
-		let croom = GAME_ENGINE_INSTANCE.getCurrentRoom();
- 
-		//let mapNodes = croom.mapNodes;
+		let croom = GAME_ENGINE_INSTANCE.getCurrentRoom(); 
 
 		let mapNodes = {};
 		for(let i in croom.mapNodes) {
@@ -611,20 +805,20 @@ function GameEngine(canvas, fps=24) {
 			let coords = i.split(",");
 			mapNodes[i] = {
 				exits: Array.from(croom.mapNodes[i].exits),
-				dist: Math.abs(coords[0] - destX) + Math.abs(coords[1] - destY)//Math.sqrt(Math.abs(coords[0] - destX)**2 + Math.abs(coords[1] - destY)**2)
+				dist: Math.abs(coords[0] - destX) + Math.abs(coords[1] - destY) 
 			};
 		}
 
 		let allPaths = [new Path([startX + "," + startY])];
 		let masterPath = [];
-		let victoryPath = {path:-1,weight:-1};
+		let victoryPath = { path:-1, weight:-1 };
 
 		let pathsActive = false;
 
 		for(let panic = 0; panic < 50; panic++) {
 
 			let newPaths = []; 
-			let shortest = {dist:9999999,index:-1}; 
+			let shortest = { dist: 9999999, index: -1 }; 
 
 			for(let i = 0; i < allPaths.length; i++) {
 
@@ -677,12 +871,8 @@ function GameEngine(canvas, fps=24) {
 				if(depthPath[0]) { 
 					newPaths[shortest.index].path = shortestPath.path.concat(depthPath[1].slice(1));
 				}
-
-
 			}
 			
-			
-
 			
 			if(!pathsActive) { break; }
 			else { 
@@ -761,7 +951,7 @@ function GameEngine(canvas, fps=24) {
 
 	this.moveInDirection = function(direction, speed) {
 		 
-		let os = GAME_ENGINE_INSTANCE.pointDirection(direction,speed);
+		let os = GAME_ENGINE_INSTANCE.getPointDirection(direction,speed);
 		this.x = this.x + os[0];
 		this.y = this.y + os[1];
 		return true;
@@ -825,43 +1015,6 @@ function GameEngine(canvas, fps=24) {
 	GAME_ENGINE_INSTANCE.objects.push(this);
 	
 	return this;
-}function Instance(obj, limit = 25, _firstCall=true) {
-
-	let target = typeof obj === "object" ? obj : GAME_ENGINE_INSTANCE.getEngineResources(obj)[0];
-	
-	try {
-
-		if(limit <= 0) { throw "Recursed too many times."; }
-
-		for(let prop in target) {
-			let val = target[prop];
-
-			if(typeof val === "number") { this[prop] = Number(val); }
-			if(typeof val === "string") { this[prop] = String(val); } 
-			if(typeof val === "function" || typeof val === "boolean") { this[prop] = val; } 
-			if(typeof val === "object") {
-				if(Array.isArray(val)) {
-					this[prop]=[];
-					for(let i = 0; i < val.length; i++) { 
-						this[prop][i] = typeof val[i] === "object" ? new Instance(val[i], limit-1, false) : val[i];
-					}
-				}
-				else {
-					this[prop] = String(val.__proto__).indexOf("HTML") !== -1 ? val : new Instance(val, limit-1, false); 
-				}
-			}
-		}
-		
-		
-	}
-	catch(e) {
-		console.error("Value copy failed", obj, e);
-		return null;
-	}
-
-	if(_firstCall) { this.id = GAME_ENGINE_INSTANCE.generateID(); }
-
-	return this;
 }function Sprite(arg0, fileName, sheetX = 0, sheetY = 0, sheetWidth = 16, sheetHeight = 16, drawWidth = 16, drawHeight = 16, animationSpeed=1, forceNewResource = false, onanimationend = -1) {
 	
 	let argObj = typeof arg0 === "object";
@@ -890,6 +1043,7 @@ function GameEngine(canvas, fps=24) {
 	this.onanimationend = onanimationend;
 	this.scaleX = 1;
 	this.scaleY = 1;
+	this.rotation = 0;
 	this.workingResource = this.resource;
 	this.lastDrawScaled = false;
 
@@ -909,17 +1063,34 @@ function GameEngine(canvas, fps=24) {
 				let xPos = Array.isArray(this.sheetX) ? this.sheetX[Math.round(this.frameX)] : this.sheetX;
 				let yPos = Array.isArray(this.sheetY) ? this.sheetY[Math.round(this.frameY)] : this.sheetY;
 
-				if(this.scaleX != 1 || this.scaleY != 1) {
-					engine.ctx.save();
-					engine.ctx.translate(x-croom.view.x,y-croom.view.y);
-					//engine.ctx.translate(x,y);
-					engine.ctx.scale(this.scaleX, this.scaleY); x = croom.view.x; y = croom.view.y;
+				if(this.rotation != 0 || this.scaleX != 1 || this.scaleY != 1) { 
+					engine.ctx.save(); 
+					engine.ctx.translate(x-croom.view.x,y-croom.view.y); 
 				}
+
+				if(this.scaleX != 1 || this.scaleY != 1) {
+				
+					//engine.ctx.translate(x-croom.view.x,y-croom.view.y);
+					engine.ctx.scale(this.scaleX, this.scaleY); x = croom.view.x; y = croom.view.y;
+					
+				}
+
+				if(this.rotation != 0) { 
+					engine.ctx.translate(this.drawWidth/2,this.drawHeight/2); 
+					engine.ctx.rotate(GAME_ENGINE_INSTANCE.degToRad(this.rotation));
+					engine.ctx.translate(-((x-croom.view.x)+this.drawWidth/2),-((y-croom.view.y)+this.drawHeight/2)); 
+					//engine.ctx.translate(-this.drawWidth/2,-this.drawHeight/2); 
+				}
+
 				engine.ctx.drawImage(this.resource, xPos, yPos, this.sheetWidth, this.sheetHeight, (x - croom.view.x)*(this.scaleX/Math.abs(this.scaleX)), (y - croom.view.y)*(this.scaleY/Math.abs(this.scaleY)), this.drawWidth*this.scaleX, this.drawHeight*this.scaleY);
  
-				if(this.scaleX != 1 || this.scaleY != 1) {
+				if(this.rotation != 0) {  
+					engine.ctx.setTransform(1, 0, 0, 1, 0, 0);
+				}
+				if(this.scaleX != 1 || this.scaleY != 1 || this.rotation != 0) {
 					engine.ctx.restore();
 				}
+
 				if(this.animated && this.speed > 0) { 
 
 					if(
@@ -960,24 +1131,41 @@ function GameEngine(canvas, fps=24) {
 	let engine = GAME_ENGINE_INSTANCE.engine;
 	
 	this.name = argObj ? arg0.name : arg0;
-	this.width = argObj ? arg0.width : width;
-	this.height = argObj ? arg0.height : height;
-	this.background = argObj ? arg0.background : background;
+	this.width = width;
+	this.height = height;
+	this.background = background;
+
+	this.gridMaps = [];
 
 	//Mainly used for pathfinding
 	this.gridX = gridX;
 	this.gridY = gridY;
 	
-	this.roomObjects = argObj ? arg0.roomObjects : roomObjects;
-	this.tiles = argObj ? arg0.tiles : tiles;
+	this.roomObjects = roomObjects;
+	this.tiles = tiles;
 
 	this.view = { x: 0, y: 0, width: this.width, height: this.height, obj: false};
 	
 	this.id = GAME_ENGINE_INSTANCE.generateID();
 
+	this.vars = {};
+	this.functions = {};
+
+
 	this.roomStart = function() { 
+
+		this.loadGridMaps();
+
 		this.roomObjects.forEach(obj=>{
 			if(typeof obj['onroomstart'] === 'function') { obj.onroomstart(); } 
+		});
+	}
+
+	this.loadGridMaps = function() {
+		this.gridMaps.forEach(map=>{
+			if(typeof map.generate === 'function') {
+				map.generate();
+			}
 		});
 	}
 
@@ -988,11 +1176,18 @@ function GameEngine(canvas, fps=24) {
 		return true;
 	}
 
-	this.addObject = function(object,copy=false,sort=true,renewNodes=false) {
-		 
-		this.roomObjects.push(copy ? Object.assign({},object) : object);
+	this.addObject = function(object,copy=false,sort=true) {
+		
+		let obj = GAME_ENGINE_INSTANCE.getObject(object);
+		obj = copy ? new Instance(object) : obj;
+
+		obj.xstart = obj.x;
+		obj.ystart = obj.y;
+		this.roomObjects.push(obj);
 
 		if(sort) { this.sortDepth(); }
+
+		if(typeof object.oncreate != "undefined") { object.oncreate(); }
 
 		return true;
 	}
@@ -1011,8 +1206,10 @@ function GameEngine(canvas, fps=24) {
 
 	this.getObjects = function(ind=-1) {
 		
+		if(ind === -1) { return this.roomObjects; }
+		
 		let objects = [];
-
+		
 		this.roomObjects.forEach(obj=>{
 
 			if(Array.isArray(ind)) {
@@ -1045,9 +1242,45 @@ function GameEngine(canvas, fps=24) {
 		return tilesThere;
 	}
 
+	this.getObjectsOnLine = function(x1,y1,x2,y2,solidOnly,ignore=[]) {
+
+		let cx = x1;
+		let cy = y1;
+		let cols = [];
+		let ids = [];
+		let panic = 0;
+		let distance = 9999999;
+
+		while(!((cx == x2 && cy == y2)) ) {
+
+			
+			let objs = this.getObjectsAt(cx,cy,solidOnly,1,1,ignore);
+			if(objs.length > 0) { 
+				objs.forEach(obj=>{
+					if(ids.indexOf(obj.id) === -1) { 
+						ids.push(obj.id);
+						cols.push(obj);
+					}
+				});
+			}
+
+			panic++;
+
+			if(panic > (this.width+this.height)**2) { break; }
+
+			distance = ((Math.abs(x2 - cx)) + (Math.abs(y2 - cy)));
+			if(distance < 2) {break;}
+
+			cx += ((x2 - cx)) / distance;
+			cy += ((y2 - cy)) / distance;
+			//console.log(distance);
+		}
+
+		return cols;
+	}
+
 	this.getObjectsAt = function(x,y,solidOnly = false,width=1,height=1,ignore=[]) {
 		
-		//console.log(ignore);
 		if(!Array.isArray(ignore)) { ignore = [ignore]; }
 		
 		let objsThere = [];
@@ -1113,7 +1346,8 @@ function GameEngine(canvas, fps=24) {
 				
 					//if(tile.x >= this.view.x - tile.sprite.drawWidth && tile.x <= this.view.x + this.view.width && tile.y >= this.view.y - tile.sprite.drawHeight && tile.y <= this.view.y + this.view.height) {
 						
-						tile.sprite.draw(tile.x, tile.y); 
+						game.getSprite(tile.sprite).draw(tile.x,tile.y);
+						//tile.sprite.draw(tile.x, tile.y); 
 					//}
 				} 
 			});
@@ -1167,32 +1401,76 @@ function GameEngine(canvas, fps=24) {
 		this.map = map;
 	}
 
+	this.addMap = function(map) {
+		let fmap = GAME_ENGINE_INSTANCE.getGridMap(map);
+		if(typeof fmap !== 'undefined') { this.gridMaps.push(map); }
+		else { console.warn('Invalid GridMap ', map); }
+	}
+	
+	
+	if(argObj) {
+		for(let prop in arg0) {
+			
+			if(prop == "objects") {
+				
+				this.roomObjects = [];
+				
+				arg0[prop].forEach(obj=>{
+					console.log(this);
+					
+					this.addObject(obj);
+				});
+			}
+			else {
+				this[prop] = arg0[prop];
+			}
+			
+			
+		}
+	}
+
 	this.generateNodes();
 
 	GAME_ENGINE_INSTANCE.rooms.push(this);
 	
 	return this;
-}function Tile(arg0, sprite = new Sprite(), x = 0, y = 0, solid = false, properties = []) {
+}function Instance(obj, properties={}, _limit = 25, _firstCall=true) {
+
+
+	let target = typeof obj === "object" ? obj : GAME_ENGINE_INSTANCE.getEngineResources(obj)[0];
 	
-	this.name = arg0;
-	this.sprite = sprite;
-	this.x = x;
-	this.y = y;
-	this.solid = solid;
-	this.properties = properties;
+	try {
 
-	this.id = GAME_ENGINE_INSTANCE.generateID();
+		if(_limit <= 0) { throw "Recursed too many times."; }
 
-	this.destroy = function() {
+		for(let prop in target) {
+			let val = target[prop];
 
-		console.log(this,this.id);
-		let newTileArray = GAME_ENGINE_INSTANCE.getCurrentRoom().tiles.filter(tile=>{ return tile.id !== this.id; });
-		GAME_ENGINE_INSTANCE.getCurrentRoom().tiles = newTileArray;
-
-		return delete this;
+			if(typeof val === "number") { this[prop] = Number(val); }
+			if(typeof val === "string") { this[prop] = String(val); } 
+			if(typeof val === "function" || typeof val === "boolean") { this[prop] = val; } 
+			if(typeof val === "object") {
+				if(Array.isArray(val)) {
+					this[prop]=[];
+					for(let i = 0; i < val.length; i++) { 
+						this[prop][i] = typeof val[i] === "object" ? new Instance(val[i], {}, _limit-1, false) : val[i];
+					}
+				}
+				else {
+					this[prop] = String(val.__proto__).indexOf("HTML") !== -1 ? val : new Instance(val, {}, _limit-1, false); 
+				}
+			}
+		}
+		
+		
+	}
+	catch(e) {
+		console.error("Value copy failed", obj, e);
+		return null;
 	}
 
-	GAME_ENGINE_INSTANCE.tiles.push(this);
+	if(_firstCall) { this.id = GAME_ENGINE_INSTANCE.generateID(); }
+	for(let v in properties) { this[v] = properties[v]; }
 
 	return this;
 }function Sound(arg0, fileName, volume = 1, forceNewResource = false) {
@@ -1210,7 +1488,7 @@ function GameEngine(canvas, fps=24) {
 
 		this.prevVolume = this.resource.volume;
 		this.resource.volume = vol;
-		this.resource.play();
+		try { this.resource.play(); } catch(e) { console.warn("Sound error", e); }
 		this.resource.volume = this.prevVolume;
 
 		return true;
@@ -1268,6 +1546,75 @@ function GameEngine(canvas, fps=24) {
 	this.id = GAME_ENGINE_INSTANCE.generateID();
 
 	GAME_ENGINE_INSTANCE.sounds.push(this);
+
+	return this;
+}function Tile(arg0, sprite = new Sprite(), x = 0, y = 0, solid = false, properties = []) {
+	
+	this.name = arg0;
+	this.sprite = sprite;
+	this.x = x;
+	this.y = y;
+	this.solid = solid;
+	this.properties = properties;
+
+	this.id = GAME_ENGINE_INSTANCE.generateID();
+	
+	if(typeof this.sprite == "string") { this.sprite = GAME_ENGINE_INSTANCE.getSprite(this.sprite); }
+
+	this.destroy = function() {
+
+		console.log(this,this.id);
+		let newTileArray = GAME_ENGINE_INSTANCE.getCurrentRoom().tiles.filter(tile=>{ return tile.id !== this.id; });
+		GAME_ENGINE_INSTANCE.getCurrentRoom().tiles = newTileArray;
+
+		return delete this;
+	}
+
+	GAME_ENGINE_INSTANCE.tiles.push(this);
+
+	return this;
+}function GridMap(name, gridX=32, gridY=32, map = [], key={}) {
+
+	this.name = name;
+	this.gridX = gridX;
+	this.gridY = gridY;
+	this.map = map;
+	this.key = key;
+
+	this.generate = function() {
+
+		let game = GAME_ENGINE_INSTANCE;
+		let croom = game.getCurrentRoom()
+		
+		if(croom != -1) {
+			
+			for(let y = 0; y < map.length; y++) {
+
+				for(let x = 0; x < map[y].length; x++) {
+
+					let space = map[y][x];
+
+					if(typeof key[space] !== 'undefined') {
+
+						let obj = game.getObject(key[space]);
+
+						if(typeof obj !== 'undefined') {
+
+							let inst = new Instance(obj);
+
+							inst.x = x * this.gridX;
+							inst.y = y * this.gridY;
+
+							croom.addObject(inst);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	this.id = GAME_ENGINE_INSTANCE.generateID();
+	GAME_ENGINE_INSTANCE.gridMaps.push(this);
 
 	return this;
 }

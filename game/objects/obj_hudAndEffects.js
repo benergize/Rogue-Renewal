@@ -67,12 +67,15 @@ obj_hudAndEffects.onroomstart = function() {
 obj_hudAndEffects.generateGraph = function() {
 	let map = [];
 	this.dmap=[];
-	for(let y = 0; y < room1.height/48; y++) {
+	let croom = game.getCurrentRoom();
+	for(let y = 0; y < croom.height/48; y++) {
 		map[y] = [];
 		this.dmap[y]=[];
-		for(let x = 0; x < room1.width/32; x++) {
-			map[y][x] = room1.getObjectsAt(1+(x*32),1+(y*48),true,0,0).length>0?"A":" ";
-			this.dmap[y][x] = [false,"black"];
+		for(let x = 0; x < croom.width/32; x++) {
+			map[y][x] = croom.getObjectsAt(1+(x*32),1+(y*48),true,0,0).length>0?"A":" ";
+
+			//Discovered, current color, objective color (1=black, 0 = transparent)
+			this.dmap[y][x] = [false, 1, 1];
 		}
 	} 
 	this.map = map;
@@ -88,9 +91,13 @@ obj_hudAndEffects.ondraw = function() {
 	for(let y = 0; y < this.dmap.length; y++) {
 		for(let x = 0; x < this.dmap[y].length; x++) {
 
-			if(this.dmap[y][x][1] !== -1) {
+			if(this.dmap[y][x][1] < this.dmap[y][x][2]) { this.dmap[y][x][1]+=.2; }
+			else if(this.dmap[y][x][1] > this.dmap[y][x][2]) { this.dmap[y][x][1]-=.2; }
+			if(Math.abs(this.dmap[y][x][1]-this.dmap[y][x][2]) < .2) { this.dmap[y][x][1] = this.dmap[y][x][2]; }
 
-				if(game.engine.ctx.fillStyle != this.dmap[y][x][1]) { game.engine.ctx.fillStyle =  this.dmap[y][x][1]; } 
+			if(this.dmap[y][x][1] != 0) {
+
+				if(game.engine.ctx.fillStyle != this.dmap[y][x][1]) { game.engine.ctx.fillStyle = "rgba(0,0,0, "+ this.dmap[y][x][1] + ")"; } 
 				game.engine.ctx.fillRect(-room.view.x + (x*32),-room.view.y + (y*48),32,48);
 			}	
 		}
@@ -119,14 +126,34 @@ obj_hudAndEffects.ondraw = function() {
 	game.engine.ctx.fillRect(sx+2,sy+2, this.player.dhp, 18);
 	game.engine.ctx.strokeRect(sx,sy, 100+4, 22);
 
+	let inv = obj_player.inventory.contents;
+	let inhand = obj_player.vars.inhand;
+	let invText = 
+		(inv.length == 0 ? "INVENTORY EMPTY" : "ITEMS HAVE: " + inv.length) + "\n" + 
+		(inhand != -1 ? 
+			"EQUIPPED: " + inv[inhand].name + " | " + 
+			(inv[inhand].type == "spell" ? inv[inhand].uses + " USES REMAIN" :
+			( inv[inhand].consumable ? 
+				inv[inhand].consumeEffect.hp + "hp " + 
+				inv[inhand].consumeEffect.mp + "mp " + 
+				inv[inhand].consumeEffect.ap + "ap" : ""))
+		: "")
+	;
+	
+	invText.split("\n").forEach(function (el,ind) {
+		game.engine.ctx.fillText(el,sx+120,sy+10+ ( ind * 12));
+	});
 
 	//Enemy health bars
 	room.getObjects("obj_enemy").forEach(enemy=>{
 		
 		if(game.mDistance(obj_player.x,obj_player.y,enemy.x,enemy.y) < 6*32) {  
+
+			if(enemy.dhp > enemy.hp) { enemy.dhp -= Math.abs(enemy.dhp-enemy.hp)/2; }
+
 			game.engine.ctx.strokeStyle = "black";
-			game.engine.ctx.strokeRect(-room.view.x + (enemy.x + (enemy.sprite.drawWidth / 2) - (enemy.hp)), -room.view.y + (enemy.y - 12), (enemy.hp) * 2, 6);
-			game.engine.ctx.fillRect(-room.view.x + (enemy.x + (enemy.sprite.drawWidth / 2) - (enemy.hp)), -room.view.y + (enemy.y - 12), (enemy.hp) * 2, 6);	
+			game.engine.ctx.strokeRect(-room.view.x + (enemy.x + (enemy.sprite.drawWidth / 2) - (enemy.dhp)), -room.view.y + (enemy.y - 12), (enemy.dhp) * 2, 6);
+			game.engine.ctx.fillRect(-room.view.x + (enemy.x + (enemy.sprite.drawWidth / 2) - (enemy.dhp)), -room.view.y + (enemy.y - 12), (enemy.dhp) * 2, 6);	
 		} 
 		
 	});
@@ -167,7 +194,7 @@ obj_hudAndEffects.computeShadows = function() {
 				if(px < sx) { sx--; }
 				if(py < sy) { sy--; }
 
-				if(this.map[sy][sx] != " ") { accessible=false; break; }
+				if(typeof this.map[sy] == "undefined" || this.map[sy][sx] != " ") { accessible=false; break; }
 				if(sx==px && sy==py) { break; }
 				
 				if(panic>=38) { console.log('panic') }
@@ -177,17 +204,17 @@ obj_hudAndEffects.computeShadows = function() {
 			if(accessible || discovered) { 
 
 				let c = Math.min(1,distance/12);
-				if(inRange) { color = -1; }
-				else { color = "rgba(0,0,0,"+c+")"; }
+				if(inRange) { color = 0; }
+				else { color = c; }
 
 				this.dmap[y][x][0] = true;
 			}
 			else {
-				color = "black";
+				color = 1;
 			}
 			
 
-			this.dmap[y][x][1] = color;
+			this.dmap[y][x][2] = color;
 			//if(!accessible) { game.engine.ctx.fillRect(-room.view.x + (x*32),-room.view.y + (y*48),32,48); }
 		}
 	}

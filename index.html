@@ -39,9 +39,13 @@
 		<canvas id = 'canvas' width = '640' height = '480' tabindex = "1"></canvas>
 		
 		<!-- Serve the latest version of the engine via my website via github -->
-		<script src = 'BJGE.js'></script>
+		<script src = 'GameBoulder.js'></script>
 
-		<script>game = new GameEngine("#canvas");</script>
+		<script>
+			game = new GameEngine("#canvas");
+
+			var persistentRooms = {"x,y":[]};
+		</script>
 
 		
 		<script src = 'game/sounds/general.js'></script>
@@ -54,13 +58,21 @@
 		<script src = 'game/objects/obj_wall.js'></script>
 		<script src = 'game/objects/obj_door.js'></script>
 		<script src = 'game/objects/obj_enemy.js'></script>
+		<script src = 'game/objects/obj_fire.js'></script>
+		<script src = 'game/objects/obj_projectile.js'></script>
 		<script src = 'game/objects/obj_hudAndEffects.js'></script>
 		
+		<script src = 'game/gridmaps/gm_room.js'></script>
 
-		<script src = 'game/objects/items/obj_potion.js'></script>
 		
+		<script src = 'game/objects/items/Item.js'></script>
+		<script src = 'game/objects/items/Weapon.js'></script>
 		<script src = 'game/scripts/pcg_cave.js'></script>
+		<script src = 'game/objects/items/obj_potion.js'></script>
+		<script src = 'game/scripts/scr_genWeapon.js'></script>
+		<script src = 'game/scripts/scr_genScroll.js'></script>
 		<script src = 'game/scripts/echo.js'></script>
+		<script src = 'game/scripts/spells/spell_flameWall.js'></script>
 
 		<script src = 'game/rooms/room1.js'></script>
 

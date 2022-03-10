@@ -1,4 +1,4 @@
-function Obj_Pickup(x,y,sprite = new Sprite("spr_pickup","game/sprites/items.png",352,234, 32,48,32,48)) {
+function Obj_Pickup(x,y,sprite = spr_chest) {
 
 	let pickup = new GameObject("obj_pickup",x,y,sprite);
 
@@ -7,31 +7,53 @@ function Obj_Pickup(x,y,sprite = new Sprite("spr_pickup","game/sprites/items.png
 		return true;
 	}
 
-	this.opened = false;
+	pickup.opened = false;
+	pickup.scroll = true;//Math.random() > .1;
+
+	if(pickup.scroll) {
+		
+		pickup.item = genScroll();
+		pickup.sprite = spr_scroll;
+	}
 
 	pickup.open = function() {
 
-	
-		this.sprite.sheetX += 32;
-		this.opened = true;
+		if(!this.scroll) {
 
-		let roll = Math.random() * 100; 
-		let item = -1;
+		
+			this.sprite = spr_chest_open;
+			this.opened = true;
 
-		if(roll < 30) { 
-			sou_foundSomethingSm.play(); 
-			item = new Obj_Potion(Math.random()*20, Math.random()*20, Math.random() * 20)
-			obj_player.inventory.push(item);
+			let roll = Math.random() * 100; 
+			this.item = -1;
+
+			if(roll > 90) {
+				sou_foundSomethingMd.play(); 
+				this.item = genWeapon(1);
+				obj_player.inventory.addItem(this.item);
+
+			}
+			else if(roll > 30) { 
+				sou_foundSomethingSm.play(); 
+				this.item = new Obj_Potion(Math.random()*20, Math.random()*20, Math.random() * 20)
+				obj_player.inventory.addItem(this.item);
+			}
+
+			if(this.item === -1) {
+				sou_emptyChest.play();
+			}
+		}
+		else {
+			obj_player.inventory.addItem(this.item);
+			sou_foundSomethingMd.play(); 
+			this.destroy();
 		}
 
-		if(item === -1) {
-			sou_emptyChest.play();
-		}
-
-		return echo("Found " + (typeof item.name != "undefined" ? item.name + "." : " nothing."),3);
+		return echo("Found " + (typeof this.item.name != "undefined" ? this.item.name + "." : " some gold!"),3);
 
 
 	}
+	
 
 	pickup.depth = -y;
 

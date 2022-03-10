@@ -17,20 +17,13 @@ function Obj_Potion(hp, mp, ap) {
 	if(ap < 0) { name += " of Sapping"; }
 	if(ap > 0) { name += " of Refreshing"; }
 
-	potion.name = name;
-	potion.effect = {};
-	potion.effect.hp = hp;
-	potion.effect.mp = mp;
-	potion.effect.ap = ap;
-	potion.id = game.generateID();
+	potion.name = (ap == 0 && mp == 0 && hp == 0 ? "Useless " : "") + name;
+	potion.consumable = true;
+	potion.consumeEffect = {};
+	potion.consumeEffect.hp = hp;
+	potion.consumeEffect.mp = mp;
+	potion.consumeEffect.ap = ap; 
+ 
 
-	potion.use = function() {
-		obj_player.hp += this.effect.hp;
-		obj_player.mp += this.effect.mp;
-		obj_player.ap += this.effect.ap;
-
-		obj_player.inventory.removeItem(this.id);
-	}
-
-	return potion;
+	return new Item(potion);
 }

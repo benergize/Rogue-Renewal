@@ -1,7 +1,7 @@
 var obj_player = new GameObject(
 	"obj_player", 
 	128, 240, 
-	new Sprite("spr_player","game/sprites/people.png",0,0,25,38,25,38),
+	-1,
 	-1,
 	-1,
 	-1,
@@ -10,6 +10,7 @@ var obj_player = new GameObject(
 	[1,24,24,11],
 	-1
 );
+obj_player.vars.sprite = new Sprite("spr_player","game/sprites/people.png",-1,0,25,38,25,38);
 obj_player.pname = "Darius Wildwand";
 obj_player.gold = 0;
 obj_player.class = "Explorer"
@@ -24,7 +25,44 @@ obj_player.stats = {
 	sneak: 5,
 	cons: 5
 };
+obj_player.vars.worldCoords = [255,255];
+obj_player.vars.slots = {
+	"head": -1,
+	"legs":-1,
+	"shoulders":-1,
+	"ring1":-1,
+	"ring2":-1,
+	"hands":-1,
+	"body":-1,
+	"neck":-1,
+	"weapon":-1,
+	"attuned1":-1,
+	"attuned2":-1,
+	"attuned3":-1
+};
+obj_player.vars.dx = obj_player.x;
+obj_player.vars.dy = obj_player.y;
 
+obj_player.vars.inhand = -1;
+obj_player.ondraw = function() {
+	this.vars.sprite.draw(this.vars.dx,this.vars.dy);
+}
+obj_player.onroomstart = function() {
+
+	this.vars.dx = this.x;
+	this.vars.dy = this.y;
+}
+obj_player.onstep = function() {
+	let dxd = Math.abs(this.vars.dx-this.x);
+	if(this.vars.dx < this.x) { this.vars.dx+=dxd/2; }
+	if(this.vars.dx > this.x) { this.vars.dx-=dxd/2; }
+	if(Math.abs(this.vars.dx-this.x) < 5) { this.vars.dx = this.x; }
+	
+	let dyd = Math.abs(this.vars.dy-this.y);
+	if(this.vars.dy < this.y) { this.vars.dy+=dyd/2; }
+	if(this.vars.dy > this.y) { this.vars.dy-=dyd/2; }
+	if(Math.abs(this.vars.dy-this.y) < 5) { this.vars.dy = this.y; }
+}
 obj_player.inventory = {
 	contents: [],
 	getItems: function(mapOnly=false) {
@@ -37,21 +75,31 @@ obj_player.inventory = {
 		if(typeof item !== "object") { return false; }
 
 		this.contents.push(item);
+
+		if(obj_player.vars.inhand == -1) { obj_player.vars.inhand = 0; }
+
 		return true;
 	},
 	getItem: function(item) {
  
 		for(let i = 0; i < this.contents.length; i++) {
 
-			if(this.contents[i][typeof item === "string" ? "name" : "id"] === item) { return item; }
+			if(this.contents[i][typeof item === "string" ? "name" : "id"] === item) { return this.contents[i]; }
 		}
 
 		return false;
 	},
 	removeItem: function(item) {
 
-		let newInvArray = this.contents.filter(obj=>{ return this.obj[typeof item === "string" ? "name" : "id"] != item; });
+		let th = this;
+
+		let newInvArray = this.contents.filter(obj=>{ return obj[typeof item === "string" ? "name" : "id"] != item; });
 		this.contents = newInvArray;
+
+		console.log(obj_player.vars.inhand, this.contents.length);
+		if(obj_player.vars.inhand > this.contents.length-1) { obj_player.vars.inhand = this.contents.length-1; }
+
+		return true;
 	}
 };
 obj_player.inventory.push = obj_player.inventory.addItem;
@@ -80,10 +128,20 @@ obj_player.onmousedown = function(ev) {
 }
 
 obj_player.onkeydown = function(ev) {
-	
-	//console.log(this); 
 
 	let cr = game.getCurrentRoom();
+
+	if(ev.key == "[" || ev.key == "]" && this.inventory.contents.length > 0) {
+
+		this.vars.inhand = ev.key == "[" ? ( this.vars.inhand <= 0 ? this.inventory.contents.length -1 : this.vars.inhand-1 ) : ( this.vars.inhand == this.inventory.contents.length-1 ? 0 : this.vars.inhand+1 );
+	}
+	
+	if(ev.key == "u" && this.vars.inhand != -1 && !cr.getObject("obj_fire")) {
+		obj_player.inventory.contents[this.vars.inhand].use(); 
+	}
+
+	//console.log(this); 
+
 	let cb = this.collisionBox;
 	let prevPos = this.x + ',' + this.y;
 
@@ -94,15 +152,15 @@ obj_player.onkeydown = function(ev) {
 
 	let x = this.x;
 	let y = this.y;
-	if(x < 0 || x > cr.width || y < 0 || y > cr.height) {
+	if(x < 0 || x > cr.width || y < 0 || y >= cr.height) {
 
 
 		console.log(this.x,this.y);
 
-		if(this.x > cr.width) { this.x = 4; }
-		else if(this.x < 0) { this.x = cr.width - 56; }
-		if(this.y < 0) { this.y = cr.height - 56; }
-		else if(this.y > cr.height) { this.y = 0; }
+		if(this.x > cr.width) { this.x = 4; this.vars.worldCoords[0]++; }
+		else if(this.x < 0) { this.x = cr.width - 56; this.vars.worldCoords[0]--; }
+		if(this.y < 0) { this.y = cr.height - 56; this.vars.worldCoords[1]--;}
+		else if(this.y > cr.height) { this.y = 0; this.vars.worldCoords[1]++; }
 		
 		//this.x = x < 0 ? cr.width-32 : (x > cr.width ? 32 : x);
 		//this.y = y < 0 ? cr.height-48 : (y > cr.height ? 48 : y);
@@ -112,7 +170,17 @@ obj_player.onkeydown = function(ev) {
 		this.snapToGrid(16,48);
 		console.log(this.x,this.y);
 
-		pcg_cave(false);
+		if(typeof persistentRooms[this.vars.worldCoords[0] + "," + this.vars.worldCoords[1]] == "undefined") {
+			pcg_cave(false);
+		}
+		else {
+			game.setCurrentRoom(persistentRooms[this.vars.worldCoords[0] + "," + this.vars.worldCoords[1]]);
+
+			let cols = this.getCollisions(true);
+			cols.forEach(obj=>{
+				if(obj.name == "obj_wall") { obj.destroy(); }
+			});
+		}
 
 		//this.x+=4;
 	}
@@ -147,7 +215,8 @@ obj_player.onkeydown = function(ev) {
 					
 					echo("You hit the " + obj.pName + " for " + Math.round(this.stats.str + dice) + " dmg!");
 
-					sou_punch[Math.floor(Math.random()*sou_punch.length)].play();
+					//sou_punch[Math.floor(Math.random()*sou_punch.length)].play();
+					sou_damage_foe.play();
 				}
 				
 			}
@@ -156,7 +225,7 @@ obj_player.onkeydown = function(ev) {
 
 	
 
-	room1.getObjects("obj_enemy").forEach(e=>{e.ai(0);})
+	game.getCurrentRoom().getObjects("obj_enemy").forEach(e=>{e.ai(0);})
 
 
 } 

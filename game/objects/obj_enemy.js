@@ -11,28 +11,36 @@ function Obj_Enemy(x,y) {
 	foe.tick = 0;
 	foe.hp = 24;
 	foe.maxHp = 24;
-	foe.dmg = 7;
+	foe.dmg = 5;
 	foe.stats = {
 		str: 3,
 		agi: 3,
 		const: 1,
 		luck:2
 	}
+	foe.dhp = foe.hp;
 	foe.pName = "Ghostly Fencer";
 
-	foe.ai = function(spd=0) {
+	foe.amIDead = function() {
 
 		if(this.hp <= 0) {
 			return this.destroy();
 		}
+	}
 
-		this.tick=13;
+	foe.ai = function(spd=0) {
 
-		if(this.tick > 12 &&(obj_player.x != this.playerLastX || obj_player.y != this.playerLastY)) {
+
+		this.amIDead();
+
+		this.tick += 5 + (Math.random() * 7);
+		console.log(this.tick);
+
+		if(this.tick > 12 && (obj_player.x != this.playerLastX || obj_player.y != this.playerLastY)) {
 
 			let croom = game.getCurrentRoom();
 
-			this.generatePath(obj_player.x,obj_player.y+24,croom.gridX,croom.gridY);
+			this.generatePath(obj_player.x,obj_player.y,croom.gridX,croom.gridY);
  
 			this.playerLastX = obj_player.x;
 			this.playerLastY = obj_player.y;
@@ -42,9 +50,10 @@ function Obj_Enemy(x,y) {
 		this.pathStep(spd);
 	}
 
+
 	foe.combat = function() {
 
-		let dice = Math.random() * 6;
+		let dice = Math.random() * 5;
 
 		if(dice > this.stats.luck) {
 
@@ -52,6 +61,11 @@ function Obj_Enemy(x,y) {
 			echo(this.pName + " hits you for " + Math.round(this.dmg+dice)+" dmg!")
 			obj_player.hp -= this.dmg + dice;
 		}
+	}
+
+	foe.ondestroy = function() {
+		echo("You vanquished " + this.pName + "!")
+		sou_kill_foe.play();
 	}
  
 	//foe.onstep = foe.ai;
