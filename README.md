@@ -1,6 +1,6 @@
 # Rogue Renewal
 
-This is a simple roguelike game I'm building around my new game engine, <a href = 'https://github.com/benergize/Bens-JS-Game-Engine'>BJGE.JS</a>. This project should showcase the capabilities of the engine. 
+This is a simple roguelike game I'm building around my new game engine, <a href = 'https://github.com/benergize/Game-Boulder'>Game Boulder</a>. This project should showcase the capabilities of the engine. 
 
 Right now you can move around do damage and take damage. Use WASD to move, E to open chests, K to attack. There's no victory or defeat conditions, but this showcases:
 
@@ -13,4 +13,4 @@ Right now you can move around do damage and take damage. Use WASD to move, E to 
   <li>Tiles</li>
 </ul>
 
-<a href = 'https://benergize.com/indev/rogueRenewal/'>Demo</a>
+<a href = 'https://benergize.github.io/Rogue-Renewal/index.html'>Demo</a>
