@@ -5,7 +5,7 @@ function Obj_Projectile(target, x, y, homing=false) {
 	let projectile = new GameObject({
 		"name":"obj_projectile",
 		"sprite": "spr_fire",
-		"collisionBox":[14,14,14,14],
+		"collisionBox":[12,12,6,6],
 		"x":x,
 		"y":y,
 		"vars": {
@@ -16,6 +16,9 @@ function Obj_Projectile(target, x, y, homing=false) {
 		}
 	});
 
+	
+	projectile.sprite.scaleX = .75;
+	projectile.sprite.scaleY = .75;
 
 
 	projectile.onstep = function() {
@@ -24,7 +27,7 @@ function Obj_Projectile(target, x, y, homing=false) {
 			this.vars.destX = this.vars.target.x;
 			this.vars.destY = this.vars.target.y;
 		}
-		this.moveTowardsPoint(this.vars.destX, this.vars.destY, 20);
+		this.moveTowardsPoint(this.vars.destX, this.vars.destY, 30);
 
 		this.getCollisions(0,0,true).forEach(obj=>{
 			if(obj.name=="obj_wall") {this.destroy();}

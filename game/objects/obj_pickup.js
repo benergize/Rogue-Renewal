@@ -8,7 +8,7 @@ function Obj_Pickup(x,y,sprite = spr_chest) {
 	}
 
 	pickup.opened = false;
-	pickup.scroll = true;//Math.random() > .1;
+	pickup.scroll = Math.random() > .5;
 
 	if(pickup.scroll) {
 		

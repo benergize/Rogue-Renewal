@@ -45,7 +45,7 @@ obj_player.vars.dy = obj_player.y;
 
 obj_player.vars.inhand = -1;
 obj_player.ondraw = function() {
-	this.vars.sprite.draw(this.vars.dx,this.vars.dy);
+	this.vars.sprite.draw(this.x,this.y);
 }
 obj_player.onroomstart = function() {
 
@@ -130,6 +130,8 @@ obj_player.onmousedown = function(ev) {
 obj_player.onkeydown = function(ev) {
 
 	let cr = game.getCurrentRoom();
+
+	if(cr.getObject("obj_fireball_helper") !== false) { return; }
 
 	if(ev.key == "[" || ev.key == "]" && this.inventory.contents.length > 0) {
 

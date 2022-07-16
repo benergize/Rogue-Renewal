@@ -1,6 +1,6 @@
-function Obj_Enemy(x,y) {
+function Obj_Enemy(x,y, props={}) {
 
-	let foe = new GameObject("obj_enemy", x, y, spr_badguy);
+	let foe = new GameObject("obj_enemy", x, y, typeof props.sprite != "undefined" ? props.sprite : spr_badguy);
 	//foe.collisionBox = [0,0,30,46]
 
 	foe.agro = false;
@@ -66,6 +66,10 @@ function Obj_Enemy(x,y) {
 	foe.ondestroy = function() {
 		echo("You vanquished " + this.pName + "!")
 		sou_kill_foe.play();
+	}
+
+	for(let v in props) {
+		foe[v] = props[v];
 	}
  
 	//foe.onstep = foe.ai;
